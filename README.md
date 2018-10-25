@@ -10,4 +10,4 @@ docker build -t generatext .
 
 ### For development
 
-docker run -it -v "%CD%":/usr/src wiki
+docker run -it -v "%CD%":/usr/src generatext bash
