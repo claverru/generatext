@@ -2,7 +2,7 @@
 
 ## Instructions
 
-### Environment
+### Set Up environment
 
 ````
 git clone https://github.com/claverru/generatext.git
@@ -17,6 +17,7 @@ docker run -it -v "%CD%":/usr/src generatext bash
 ````
 
 #### Download Wikipedia data with WikiExtractor
+
 ````
 # apt-get install git
 git clone https://github.com/attardi/wikiextractor.git
