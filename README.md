@@ -1,5 +1,9 @@
 # GENERATEXT - Text Generated
 
+## Schema
+
+![schema](https://github.com/claverru/generatext/blob/master/Scheme.png)
+
 ## Instructions
 
 ### Set Up environment
