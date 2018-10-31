@@ -1,12 +1,13 @@
 import random
+import spacy
 
 def sample(nlp, n_samples, min, max):
-	"""Texts sampling.
+	"""Random texts sampling.
 
 	Retrieves n randomly chosen samples from min to max number of strings (words, marks, etc.).
 
 	Args:
-		nlp: spacy nlp (nlp = spacy.load('some_language'))
+		nlp: spacy model (nlp = spacy.load('some_language'))
 		n: number of samples
 		min: 
 		max: 
@@ -26,3 +27,9 @@ def sample(nlp, n_samples, min, max):
 			sample.append(random.choice(vocabulary))
 		result.append(sample)
 	return result
+
+
+if __name__ == "__main__":
+    nlp = spacy.load('es')
+    results = sample(nlp, 10, 5, 6)
+    print(results)
