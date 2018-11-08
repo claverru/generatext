@@ -30,6 +30,6 @@ def sample(nlp, n_samples, min, max):
 
 
 if __name__ == "__main__":
-    nlp = spacy.load('es')
-    results = sample(nlp, 10, 5, 6)
-    print(results)
+	nlp = spacy.load('es')
+	results = sample(nlp, 10, 5, 10)
+	print(results)

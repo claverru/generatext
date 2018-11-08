@@ -1,5 +1,7 @@
 import random
 import thinc.extra.datasets
+from random_sample import sample
+from random import shuffle
 
 def load_IMDB_data(limit=0, split=0.8):
     """Load data from the IMDB dataset."""
@@ -12,5 +14,10 @@ def load_IMDB_data(limit=0, split=0.8):
     split = int(len(train_data) * split)
     return (texts[:split], cats[:split]), (texts[split:], cats[split:])
 
-# texts[:split][0:2] : ('...', '...')
+# texts[:split][0:2] : ('...', '...', ...)
 # cats[:split][0:2] : [{'POSITIVE': False}, {'POSITIVE': False}]
+
+def data_generator(nlp, n, min, max):
+	# random part
+	while True:
+		yield sample(nlp, n, min, max)
