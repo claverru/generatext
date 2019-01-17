@@ -107,12 +107,18 @@ venv.bak/
 .mypy_cache/
 
 # ----------------------------------------------------------------------------------
-# DATA
+# WIKIEXTRACTOR & DATA
 # ----------------------------------------------------------------------------------
-/extracted
-sentences.txt
+text/wikiextractor
+text/wikiextractor.egg-info
+
+text/mined/*
+text/cleaned/*
+
 # ----------------------------------------------------------------------------------
-# WIKIEXTRACTOR
+# IN TEXT, ML & EC
 # ----------------------------------------------------------------------------------
-/wikiextractor
-/wikiextractor.egg-info
+text/__pycache__/
+text/counter.pickle
+ml/__pycache__/
+ec/__pycache__/

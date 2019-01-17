@@ -4,36 +4,24 @@
 
 ![schema](https://github.com/claverru/generatext/blob/master/Scheme.png)
 
-## Instructions
 
-### Set Up environment
+## Instructions for use
 
 ````
 git clone https://github.com/claverru/generatext.git
-cd generatext
-docker build -t generatext .
 ````
 
-### Development
+Read READMEs inside text, then ml, then ec.
 
-````
-docker run -it -v "%CD%":/usr/src generatext bash
-````
 
-#### Download Wikipedia data with WikiExtractor
+## TODO
 
-````
-# apt-get install git
-git clone https://github.com/attardi/wikiextractor.git
-cd wikiextractor
-python setup.py install
-cd .. 
-# apt-get install wget
-# eswiki, enwiki, itwiki, etc 
-wget http://download.wikimedia.org/eswiki/latest/eswiki-latest-pages-articles.xml.bz2
-WikiExtractor.py -cb 250K -o extracted itwiki-latest-pages-articles.xml.bz2
-````
+- Random Sample with Tokenizer vocabulary
+- Make and train model
+- Evolutionary Computation
 
-#### Train Model
-````
-````
+
+## Important links
+
+Tensorflow Docker tags
+https://hub.docker.com/r/tensorflow/tensorflow/tags
