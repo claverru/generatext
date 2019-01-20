@@ -12,10 +12,16 @@ docker build -t generatext .
 ### Run for Development
 
 ````
-docker run -it -v "%CD%":/usr/src generatext bash
+docker run -it -v .../generatext:/usr/src generatext bash
 ````
 
 ### Steps
+
+Inside text folder
+
+````
+cd usr/src/text
+````
 
 #### 1. Download Wikipedia data with WikiExtractor
 
@@ -39,3 +45,15 @@ python mine.py
 ````
 python clean.py
 ````
+
+#### 4. Generate Counter object for words (collections)
+
+````
+python counter.py
+````
+
+## TODO:
+
+- Refactor mine.py
+- Add restarted to clean.py (check if cleaned files already exist)
+- Reduce algorithm complexity (counter.py)

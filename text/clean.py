@@ -4,50 +4,51 @@ import sys
 import logging
 
 from unidecode import unidecode
-from langdetect import detect
 import spacy
 
 from constants import *
 
 
 def clean(in_path, out_path, nlp):
+	"""Clean sentences in in_path, then writes them in out_path."""
 	logging.debug('IN')
 	all_files = os.listdir(in_path)
 	for file in all_files:
-		# clean input files lines
+		# clean input files lines (lines is a set())
 		lines = read_in(in_path, file, nlp)
 		# write cleaned lines in output file
 		write_out(lines, out_path, file)
 
 
 def read_in(path, file, nlp):
+	"""Reads lines in files located in path and sends them to be cleaned."""
 	logging.debug('IN')
-	lines = []
+	lines = set()
 	with open(path+file, 'r') as inputfile:
 		logging.info('Cleaning {}{}'.format(path, file))
 		raw_line = inputfile.readline()
 		while raw_line:
-			for sent in nlp(raw_line).sents:
+			for i, sent in enumerate(nlp(raw_line).sents):
 				line = clean_line(nlp, sent.text.replace('\n', ''))
 				if line != None:
-					lines.append(line)
+					lines.add(line)
 			raw_line = inputfile.readline()
 	return lines
 
 
 def write_out(lines, path, file):
+	"""Write lines in file located at path."""
 	logging.debug('IN')
 	with open(path+file, 'w') as output_file:
-		logging.info('Writing {}{}'.format(path, file))
-		for line in lines:
+		logging.info('Writing {} lines in {}{}'.format(len(lines), path, file))
+		for line in lines: # just in case
 			output_file.write(line+'\n')
 
 
 def decimal_numbers(line):
 	"""Finds and replaces decimal numbers for unique token."""
 	logging.debug(line)
-	line = NUM_REG.sub(NUM_TOKEN, line)
-	return line
+	return R_NUM.sub(NUM_TOKEN, line)
 
 
 def roman_numbers(line):
@@ -62,11 +63,17 @@ def roman_numbers(line):
 	return line
 
 
+def formulas(line):
+	"""Finds and replaces formulas references for unique token (E.g. formula_1)."""
+	logging.debug(line)
+	return R_FORMULA.sub(FORMULA_TOKEN, line)
+
+
 def surrounded(line):
 	"""Finds and removes <tags> and (parenthesis)."""
 	logging.debug(line)
-	line = TAG_REG.sub('', line)
-	line = PARENTHESIS_REG.sub('', line)
+	line = R_TAG.sub('', line)
+	line = R_PARENTHESIS.sub('', line)
 	return line
 
 
@@ -90,12 +97,13 @@ def separate_tokens(line):
 def to_lower(line):
 	"""Gets everything lower except the tokens."""
 	logging.debug(line)
-	return ' '.join([w if any(token in w for token in TOKENS) else w.lower() for w in line.split()])
+	return ' '.join([w if w in TOKENS else w.lower() for w in line.split()])
 
 
 def alphanumeric(line):
+	"""Replaces special characters for white spaces."""
 	logging.debug(line)
-	return ' '.join(''.join([e if e.isalnum() else ' ' for e in w]) for w in line.split())
+	return ''.join(e if e.isalnum() else ' ' for e in line)
 
 
 def keep(line):
@@ -103,7 +111,8 @@ def keep(line):
 	logging.debug(line)
 	word_list = line.split()
 	n_words = len(word_list)
-	if n_words < 4:
+	# control words number
+	if n_words < 8 or n_words > 20:
 		return False
 	n_tokens = len(list(filter(lambda x: x in TOKENS, word_list)))
 	# excesive number of tokens
@@ -113,14 +122,9 @@ def keep(line):
 def clean_line(nlp, line):
 	"""Cleaning pipeline."""
 	logging.debug('Cleaning \"{}\"'.format(line))
-	try:
-		if detect(line) != 'es':
-			return None
-	except:
-		logging.info('Cant detect language in \"{}\"'.format(line))
-		return None
 	line = surrounded(line)
 	line = entities(nlp, line)
+	line = formulas(line)
 	line = decimal_numbers(line)
 	line = roman_numbers(line)
 	line = separate_tokens(line)
@@ -135,3 +139,15 @@ if __name__ == '__main__':
 	logging.info('Loading model - {}'.format(ES_MODEL))
 	nlp = spacy.load(ES_MODEL)
 	clean(MINED_FOLDER, CLEANED_FOLDER, nlp)
+
+
+"""
+import spacy
+nlp = spacy.load('es_core_news_md')
+from clean import clean_line
+clean_line(nlp, 'Notaremos como formula_194 el conjunto resultante de todas las combinaciones lineales de los vectores de formula_195.')
+"""
+
+"""
+'notaremos como FORM el conjunto resultante de todas las combinaciones lineales de los vectores de FORM'
+"""

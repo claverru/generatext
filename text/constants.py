@@ -11,9 +11,10 @@ CENT_ROMAN = r'(((s|S)iglo(s)?)|(s.))\s(({0}\,\s)*{0}\sy\s)?{0}'.format(ROMAN)
 # Regex
 R_ROMAN = re.compile(ROMAN)
 R_CENT_ROMAN = re.compile(CENT_ROMAN)
-NUM_REG = re.compile(r'\#?([0-9]+(\,|\.|\s|\:))*[0-9]+')
-TAG_REG = re.compile(r'\<.*?\>')
-PARENTHESIS_REG = re.compile(r'\(.*?\)')
+R_NUM = re.compile(r'\#?([0-9]+(\,|\.|\s|\:))*[0-9]+')
+R_TAG = re.compile(r'\<.*?\>')
+R_PARENTHESIS = re.compile(r'\(.*?\)')
+R_FORMULA = re.compile(r'formula_([0-9])+')
 
 # Spacy Model
 ES_MODEL = 'es_core_news_md'
@@ -26,11 +27,12 @@ ENTS = ('PER', 'LOC', 'ORG', 'MISC')
 # Named corporate, governmental, or other organizational entity.
 # MISC
 # Miscellaneous entities, e.g. events, nationalities, products or works of art.
+
+
 # Tokens
-
-
 NUM_TOKEN = 'NUM'
-TOKENS = ENTS + (NUM_TOKEN, )
+FORMULA_TOKEN = 'FORM'
+TOKENS = ENTS + (NUM_TOKEN, FORMULA_TOKEN)
 TOKEN_THROW_RATIO = 0.5
 
 # Debug
