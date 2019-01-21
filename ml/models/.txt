@@ -1,1 +1,2 @@
-models here
+Model reached epoch 6 and finished it, but failed save. 
+Anyways the checkpointer saved model in epoch 5 (and early stoppping stopped in epoch 6 because it got worse.

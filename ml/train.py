@@ -46,4 +46,4 @@ if __name__ == '__main__':
 		shuffle=False,
 		callbacks=callbacks()
 		)
-	model.save('models/model_{}.h5'.format(round(time.time())))
+	model.save('models/model_{}.h5'.format(round(time())))

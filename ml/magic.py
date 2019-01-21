@@ -13,6 +13,25 @@ sys.path.append('../text')
 import counter
 
 
+def cnn_concat_model(vocab_size, embedding_dim, maxlen):
+	in_layer = Input(shape=(maxlen, )) 
+	embedding = Embedding(input_dim=vocab_size, output_dim=embedding_dim)(in_layer)
+	st_conv2 = Conv1D(100, 2, activation='relu', padding='same')(embedding)
+	st_conv3 = Conv1D(50, 3, activation='relu', padding='same')(embedding)
+	concat = concatenate([st_conv3, st_conv2])
+	nd_conv = Conv1D(25, 2, activation='relu', padding='same')(concat)
+	flatten = Flatten()(nd_conv)
+	st_drop = Dropout(0.1)(flatten)
+	dense = Dense(50, activation='relu')(st_drop)
+	nd_drop = Dropout(0.1)(dense)
+	out_layer = Dense(1, activation='sigmoid')(nd_drop)
+	model = Model(inputs=in_layer, outputs=out_layer)
+	model.compile(optimizer='adam',
+				loss='binary_crossentropy',
+				metrics=['binary_accuracy'])
+	return model
+
+
 def callbacks(checkpoint_name='models/{epoch:02d}-{val_loss:.2f}.h5'):
 	"""Useful callbacks for Keras model's fit."""
 	early_stop = EarlyStopping(
@@ -35,43 +54,6 @@ def callbacks(checkpoint_name='models/{epoch:02d}-{val_loss:.2f}.h5'):
 		mode='auto',
 		period=1)
 	return [early_stop, tensor_board, checkpoint]
-
-
-# 1269/1269 [==============================] - 9107s 7s/step
-# - loss: 0.0874 - binary_accuracy: 0.9664 - val_loss: 0.0192 - val_binary_accuracy: 0.9938
-def cnn_model(vocab_size, embedding_dim, maxlen):
-	model = Sequential()
-	model.add(Embedding(vocab_size, embedding_dim, input_length=maxlen))
-	model.add(Conv1D(100, 3, activation='relu'))
-	model.add(Conv1D(100, 2, activation='relu'))
-	model.add(Flatten())
-	model.add(Dropout(0.1))
-	model.add(Dense(10, activation='relu'))
-	model.add(Dropout(0.1))
-	model.add(Dense(1, activation='sigmoid'))
-	model.compile(optimizer='adam',
-				loss='binary_crossentropy',
-				metrics=['binary_accuracy'])
-	return model
-
-
-def cnn_concat_model(vocab_size, embedding_dim, maxlen):
-	in_layer = Input(shape=(maxlen, )) 
-	embedding = Embedding(input_dim=vocab_size, output_dim=embedding_dim)(in_layer)
-	st_conv2 = Conv1D(100, 2, activation='relu', padding='same')(embedding)
-	st_conv3 = Conv1D(50, 3, activation='relu', padding='same')(embedding)
-	concat = concatenate([st_conv3, st_conv2])
-	nd_conv = Conv1D(25, 2, activation='relu', padding='same')(concat)
-	flatten = Flatten()(nd_conv)
-	st_drop = Dropout(0.1)(flatten)
-	dense = Dense(50, activation='relu')(st_drop)
-	nd_drop = Dropout(0.1)(dense)
-	out_layer = Dense(1, activation='sigmoid')(nd_drop)
-	model = Model(inputs=in_layer, outputs=out_layer)
-	model.compile(optimizer='adam',
-				loss='binary_crossentropy',
-				metrics=['binary_accuracy'])
-	return model
 
 
 class TextSequence(Sequence):
@@ -115,7 +97,7 @@ class TextSequence(Sequence):
 			self.lines[idx * self.batch_size:(idx + 1) * self.batch_size],
 			self.indexed)
 		bad_x = [word_list_to_sequence(
-			counter.sample_list(self.c, randint(0, 20)), 
+			counter.sample_list(self.c, randint(4, 20)), 
 			self.indexed) for i in range(self.batch_size)]
 		
 		z = list(zip(good_x+bad_x, batch_y))
