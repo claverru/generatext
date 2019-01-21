@@ -19,12 +19,12 @@ def cnn_concat_model(vocab_size, embedding_dim, maxlen):
 	st_conv2 = Conv1D(100, 2, activation='relu', padding='same')(embedding)
 	st_conv3 = Conv1D(50, 3, activation='relu', padding='same')(embedding)
 	concat = concatenate([st_conv3, st_conv2])
-	nd_conv = Conv1D(25, 2, activation='relu', padding='same')(concat)
+	nd_conv = Conv1D(25, 2, activation='relu', padding='valid')(concat)
 	flatten = Flatten()(nd_conv)
-	st_drop = Dropout(0.1)(flatten)
-	dense = Dense(50, activation='relu')(st_drop)
-	nd_drop = Dropout(0.1)(dense)
-	out_layer = Dense(1, activation='sigmoid')(nd_drop)
+	# st_drop = Dropout(0.1)(flatten)
+	dense = Dense(50, activation='relu')(flatten)
+	# nd_drop = Dropout(0.1)(dense)
+	out_layer = Dense(1, activation='sigmoid')(dense)
 	model = Model(inputs=in_layer, outputs=out_layer)
 	model.compile(optimizer='adam',
 				loss='binary_crossentropy',
@@ -32,7 +32,7 @@ def cnn_concat_model(vocab_size, embedding_dim, maxlen):
 	return model
 
 
-def callbacks(checkpoint_name='models/{epoch:02d}-{val_loss:.2f}.h5'):
+def callbacks(checkpoint_name='modelito'):
 	"""Useful callbacks for Keras model's fit."""
 	early_stop = EarlyStopping(
 		monitor='val_loss',
@@ -41,12 +41,12 @@ def callbacks(checkpoint_name='models/{epoch:02d}-{val_loss:.2f}.h5'):
 		verbose=0, 
 		mode='auto')
 	tensor_board = TensorBoard(
-		log_dir='logs', 
+		log_dir='logs',
 		histogram_freq=0, 
 		write_graph=True, 
 		write_images=True)
 	checkpoint = ModelCheckpoint(
-		checkpoint_name,
+		'models/' + checkpoint_name + '{epoch:02d}-{val_loss:.2f}.h5',
 		monitor='val_loss',
 		verbose=0,
 		save_best_only=True,
@@ -67,7 +67,7 @@ class TextSequence(Sequence):
 		batch_size: Number of cleaned lines to process and return.
 		indexed: Every word in all lines list (repeated words too).
 		maxlen: Maximum length in words to pad.
-    """
+	"""
 
 	def __init__(self, lines, batch_size, c, indexed, maxlen):
 		self.lines = lines
@@ -86,7 +86,7 @@ class TextSequence(Sequence):
 		Transform means:
 			- Generating target data (y).
 			- Generating and transforming random sentences.
-			- Processing and pad input data (X).
+			- Processing and padding input data (X).
 
 		Args:
 			idx: th batch to be returned.
