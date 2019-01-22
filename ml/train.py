@@ -24,22 +24,23 @@ def before_starting():
 	shuffle(lines)
 	index = int(len(lines)*VAL_RATIO)
 	model = cnn_concat_model(len(indexed), 50, 20)
-	return list(c.elements()), indexed, lines[index:], lines[-index:], model
+	return list(c.elements()), indexed, lines[:-index], lines[-index:], model
 
 
 if __name__ == '__main__':
 	logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
 	every_word_list, indexed, train, val, model = before_starting()
 	train_sequence = TextSequence(
-		train, BATCH_SIZE, every_word_list, indexed, 20)
+		train, BATCH_SIZE, every_word_list, indexed, 4, 20)
 	val_sequence = TextSequence(
-		val, BATCH_SIZE, every_word_list, indexed, 20)
+		val, BATCH_SIZE, every_word_list, indexed, 4, 20)
+	print('-'*80)
 	model.summary()
+	print('-'*80)
 	model.fit_generator(
 		train_sequence, 
 		validation_data=val_sequence, 
-		# steps_per_epoch=STEPS,
-		# validation_steps=1,
+		validation_steps=1,
 		epochs=EPOCHS,
 		use_multiprocessing=True,
 		workers=12, 

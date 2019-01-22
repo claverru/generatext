@@ -16,15 +16,15 @@ import counter
 def cnn_concat_model(vocab_size, embedding_dim, maxlen):
 	in_layer = Input(shape=(maxlen, )) 
 	embedding = Embedding(input_dim=vocab_size, output_dim=embedding_dim)(in_layer)
-	st_conv2 = Conv1D(100, 2, activation='relu', padding='same')(embedding)
-	st_conv3 = Conv1D(50, 3, activation='relu', padding='same')(embedding)
+	st_conv3 = Conv1D(100, 3, activation='relu', padding='same')(embedding)
+	st_conv2 = Conv1D(50, 2, activation='relu', padding='same')(embedding)
 	concat = concatenate([st_conv3, st_conv2])
-	nd_conv = Conv1D(25, 2, activation='relu', padding='valid')(concat)
+	nd_conv = Conv1D(100, 3, activation='relu', padding='valid')(concat)
 	flatten = Flatten()(nd_conv)
-	# st_drop = Dropout(0.1)(flatten)
-	dense = Dense(50, activation='relu')(flatten)
-	# nd_drop = Dropout(0.1)(dense)
-	out_layer = Dense(1, activation='sigmoid')(dense)
+	st_drop = Dropout(0.1)(flatten)
+	dense = Dense(50, activation='relu')(st_drop)
+	nd_drop = Dropout(0.1)(dense)
+	out_layer = Dense(1, activation='sigmoid')(nd_drop)
 	model = Model(inputs=in_layer, outputs=out_layer)
 	model.compile(optimizer='adam',
 				loss='binary_crossentropy',
@@ -38,10 +38,10 @@ def callbacks(checkpoint_name='modelito'):
 		monitor='val_loss',
 		min_delta=0,
 		patience=0,
-		verbose=0, 
+		verbose=1, 
 		mode='auto')
 	tensor_board = TensorBoard(
-		log_dir='logs',
+		log_dir='logs/' + checkpoint_name + '/',
 		histogram_freq=0, 
 		write_graph=True, 
 		write_images=True)
@@ -69,11 +69,12 @@ class TextSequence(Sequence):
 		maxlen: Maximum length in words to pad.
 	"""
 
-	def __init__(self, lines, batch_size, c, indexed, maxlen):
+	def __init__(self, lines, batch_size, c, indexed, minlen, maxlen):
 		self.lines = lines
 		self.batch_size = batch_size
 		self.c = c
 		self.indexed = indexed
+		self.minlen = minlen
 		self.maxlen = maxlen
 
 	def __len__(self):
@@ -97,7 +98,7 @@ class TextSequence(Sequence):
 			self.lines[idx * self.batch_size:(idx + 1) * self.batch_size],
 			self.indexed)
 		bad_x = [word_list_to_sequence(
-			counter.sample_list(self.c, randint(4, 20)), 
+			counter.sample_list(self.c, randint(self.minlen, self.maxlen)), 
 			self.indexed) for i in range(self.batch_size)]
 		
 		z = list(zip(good_x+bad_x, batch_y))
