@@ -18,7 +18,7 @@ from counter import load_object
 c = load_object('../text/counter')
 listed = list(c.elements()) # every word list including repetitions
 indexed = sorted(c + Counter(['-']))
-model = load_model('../ml/models/{}'.format('05-0.00.h5'))
+model = load_model('../ml/models/{}'.format('modelito02-0.01.h5'))
 
 
 
