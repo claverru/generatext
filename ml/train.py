@@ -1,11 +1,13 @@
+import os
 import sys
+import time
 import logging
-from time import time
-from random import sample, shuffle, randint, choice
+from random import sample
+from itertools import combinations, product, chain
 
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-from utils import load_all_lines
+from utils import load_all_lines, reduce_lines, p_distribution, ordereddict_to_list
 from magic import *
 sys.path.append('../text')
 from constants import LOG_FORMAT
@@ -16,41 +18,75 @@ BATCH_SIZE = 1024
 EPOCHS = 50
 MOLDEL_NAME = 'modelito'
 
-def ordereddict_to_list(od):
-	result = []
-	for k, v in od.items():
-		for i in range(v):
-			result.append(k)
-	return result
+
+def gs_model_generator(vocab_size, maxlen):
+	"""Grid Search for models' architecture."""
+	n_conv_layers = range(2, 4)
+	filter_sizes = chain.from_iterable(combinations(range(1, 4), n) for n in n_conv_layers)
+	n_filters = chain.from_iterable(combinations((25, 50, 100), n) for n in n_conv_layers)
+	embedding_dim = range(50, 151, 50)
+	n_denses = range(1, 4)
+	dense_neurons = range(25, 101, 25)
+	dropout = range(10, 51, 10)
+	for p in product(embedding_dim, 
+		filter_sizes, 
+		n_filters,
+		n_denses, 
+		dense_neurons,
+		dropout):
+		yield cnn_concat_model(vocab_size=vocab_size, 
+								maxlen=maxlen, 
+								embedding_dim=p[0], 
+								filter_sizes=p[1], 
+								n_filters=p[2],
+								n_denses=p[3], 
+								dense_neurons=p[4],
+								dropout_ratio=p[5]/100), p
 
 
-def before_starting():
+def create_keras_sequences(data_path='../text/cleaned/'):
 	"""Previous stuff before running model train."""
-	logging.info('Processing text and setting up utilities.')
-	lines = load_all_lines('../text/cleaned/')
+	logging.info('Processing lines')
+	lines = reduce_lines(load_all_lines(data_path), 9, 2)
+	logging.info('Fitting Keras\' Tokenizer with {} lines'.format(len(lines)))
 	tokenizer = Tokenizer(lower=False)
 	tokenizer.fit_on_texts(lines)
+	logging.info('Creating all_words_list and p_distribution')
 	all_words_list = ordereddict_to_list(tokenizer.word_counts) 
-	shuffle(lines)
+	p = p_distribution(lines)
+	logging.info('Shuffling lines')
+	lines = sample(lines, len(lines))
 	index = int(len(lines)*VAL_RATIO)
-	train_s = TextSequence(lines[:-index], tokenizer, all_words_list, BATCH_SIZE, 4, 20)
-	val_s = TextSequence(lines[-index:], tokenizer, all_words_list, BATCH_SIZE, 4, 20)
-	model = cnn_concat_model(len(tokenizer.word_index)+1, 100, 20)
-	return train_s, val_s, model
+	train_s = TextSequence(lines[:-index], tokenizer, all_words_list, BATCH_SIZE, 8, 20, p)
+	val_s = TextSequence(lines[-index:], tokenizer, all_words_list, BATCH_SIZE, 8, 20, p)
+	return train_s, val_s, len(tokenizer.word_index)+1
+
+
+def train(model, train_s, val_s, name):
+	logging.info('Training new model')
+	model.summary()
+	os.mkdir('models/{}'.format(name))
+	dropout = next(filter(lambda layer: 'dropout' in layer.name, model.layers)).get_config()['rate']
+	with open('models/'+name+'/architecture.txt', 'w') as file:
+		model.summary(print_fn=lambda x: file.write(x + '\n'))
+		file.write('\n')
+		file.write('Dropout: {}'.format(dropout))
+	model.fit_generator(train_s, 
+						validation_data=val_s,
+						epochs=EPOCHS,
+						use_multiprocessing=True,
+						workers=12, 
+						shuffle=False,
+						callbacks=callbacks(name))
+
+
+def main():
+	train_s, val_s, vocab_size = create_keras_sequences()
+	model_gen = gs_model_generator(vocab_size, 20)
+	for model, p in model_gen:
+		train(model, train_s, val_s, str(p))
 
 
 if __name__ == '__main__':
 	logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
-	train_s, val_s, model = before_starting()
-	model.summary()
-	model.fit_generator(
-		train_s, 
-		validation_data=val_s, 
-		validation_steps=1,
-		epochs=EPOCHS,
-		use_multiprocessing=True,
-		workers=12, 
-		shuffle=False,
-		# callbacks=callbacks(MOLDEL_NAME)
-		)
-	# model.save('models/{}_{}.h5'.format(MODEL_NAME, round(time())))
+	main()
