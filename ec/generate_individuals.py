@@ -14,11 +14,14 @@ from counter import load_object
 
 
 # https://deap.readthedocs.io/en/master/api/
+MODEL_PATH = 'modelito02-0.01.h5'
+
+
 
 c = load_object('../text/counter')
-listed = list(c.elements()) # every word list including repetitions
+listed = list(c.elements()) 
 indexed = sorted(c + Counter(['-']))
-model = load_model('../ml/models/{}'.format('modelito02-0.01.h5'))
+model = load_model('../ml/models/{}'.format(MODEL_PATH))
 
 
 
