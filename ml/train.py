@@ -23,11 +23,11 @@ def gs_model_generator(vocab_size, maxlen):
 	"""Grid Search for models' architecture."""
 	n_conv_layers = range(2, 4)
 	filter_sizes = chain.from_iterable(combinations(range(1, 4), n) for n in n_conv_layers)
-	n_filters = chain.from_iterable(combinations((25, 50, 100), n) for n in n_conv_layers)
-	embedding_dim = range(50, 151, 50)
-	n_denses = range(1, 4)
-	dense_neurons = range(25, 101, 25)
-	dropout = range(10, 51, 10)
+	n_filters = chain.from_iterable(combinations(range(25, 101, 25), n) for n in n_conv_layers)
+	embedding_dim = range(100, 151, 50)
+	n_denses = range(1, 3)
+	dense_neurons = range(50, 101, 50)
+	dropout = range(25, 51, 25)
 	for p in product(embedding_dim, 
 		filter_sizes, 
 		n_filters,
@@ -35,7 +35,7 @@ def gs_model_generator(vocab_size, maxlen):
 		dense_neurons,
 		dropout):
 		yield cnn_concat_model(vocab_size=vocab_size, 
-								maxlen=maxlen, 
+								maxlen=maxlen,
 								embedding_dim=p[0], 
 								filter_sizes=p[1], 
 								n_filters=p[2],
@@ -64,20 +64,23 @@ def create_keras_sequences(data_path='../text/cleaned/'):
 
 def train(model, train_s, val_s, name):
 	logging.info('Training new model')
-	model.summary()
-	os.mkdir('models/{}'.format(name))
-	dropout = next(filter(lambda layer: 'dropout' in layer.name, model.layers)).get_config()['rate']
-	with open('models/'+name+'/architecture.txt', 'w') as file:
-		model.summary(print_fn=lambda x: file.write(x + '\n'))
-		file.write('\n')
-		file.write('Dropout: {}'.format(dropout))
-	model.fit_generator(train_s, 
-						validation_data=val_s,
-						epochs=EPOCHS,
-						use_multiprocessing=True,
-						workers=12, 
-						shuffle=False,
-						callbacks=callbacks(name))
+	if name not in os.listdir('models'):
+		model.summary()
+		os.mkdir('models/{}'.format(name))
+		dropout = next(filter(lambda layer: 'dropout' in layer.name, model.layers)).get_config()['rate']
+		with open('models/'+name+'/architecture.txt', 'w') as file:
+			model.summary(print_fn=lambda x: file.write(x + '\n'))
+			file.write('\n')
+			file.write('Dropout: {}'.format(dropout))
+		model.fit_generator(train_s, 
+							validation_data=val_s,
+							epochs=EPOCHS,
+							use_multiprocessing=True,
+							workers=12, 
+							shuffle=False,
+							callbacks=callbacks(name))
+	else:
+		logging.info('Model with {} already trained'.format(name))
 
 
 def main():
