@@ -13,7 +13,6 @@ RUN python -m spacy download es_core_news_md
 
 # Others
 RUN pip install unidecode
-RUN pip install langdetect
 
 # For Development
 WORKDIR /usr/src

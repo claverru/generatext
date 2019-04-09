@@ -46,14 +46,7 @@ python mine.py
 python clean.py
 ````
 
-#### 4. Generate Counter object for words (collections)
-
-````
-python counter.py
-````
 
 ## TODO:
 
-- Refactor mine.py
-- Add restarted to clean.py (check if cleaned files already exist)
-- Reduce algorithm complexity (counter.py)
+- Refactor mine.py, clean.py

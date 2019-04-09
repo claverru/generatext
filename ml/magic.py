@@ -2,7 +2,6 @@ import sys
 import logging
 from random import shuffle, randint, sample
 
-
 import numpy
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.utils import Sequence
@@ -15,13 +14,13 @@ from utils import sample_line
 
 
 def cnn_concat_model(vocab_size,
-		maxlen, 
-		embedding_dim=100, 
-		filter_sizes=(1, 2, 3), 
-		n_filters=(25, 50, 100),
-		n_denses=2,
-		dense_neurons=50,
-		dropout_ratio=0.2):
+	maxlen,
+	embedding_dim=100, 
+	filter_sizes=(1, 2, 3), 
+	n_filters=(25, 50, 100),
+	n_denses=2,
+	dense_neurons=50,
+	dropout_ratio=0.2):
 	in_layer = Input(shape=(maxlen, )) 
 	embedding = Embedding(input_dim=vocab_size, output_dim=embedding_dim)(in_layer)
 	convs_list = [Conv1D(n, size, activation='relu', padding='same')(embedding)
@@ -70,7 +69,7 @@ def callbacks(name='modelito'):
 class TextSequence(Sequence):
 	"""Implemented Keras Sequence Class.
 	
-	Read keras.io/utils/ for mas info
+	Read keras.io/utils/ for more info
 	This class returns double the batch_size data, possible refactor.
 
 	Attributes:

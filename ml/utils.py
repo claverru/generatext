@@ -1,7 +1,16 @@
 import os
 import random
+import logging
+from random import sample
 from itertools import chain
 from collections import Counter
+
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+
+def get_lines(data_path='../text/cleaned/', ngram_len=9, n_ngrams=2):
+	lines = reduce_lines(load_all_lines(data_path), ngram_len, n_ngrams)
+	return sample(lines, len(lines))
 
 
 def load_all_lines(folder_path='../text/cleaned/'):
@@ -10,7 +19,14 @@ def load_all_lines(folder_path='../text/cleaned/'):
 			[open(folder_path+file_name, 'r').readlines() for file_name in os.listdir(folder_path)]))
 
 
+def get_tokenizer(lines):
+	tokenizer = Tokenizer(lower=False)
+	tokenizer.fit_on_texts(lines)
+	return tokenizer
+
+
 def reduce_lines(lines, n_gram, n_common):
+	"""Removes certain lines in order to avoid repetitions."""
 	grams = multiple_n_grams(lines, n_gram)
 	c = Counter(grams)
 	grams_to_check = [' '.join(gram_count[0]) for gram_count in c.most_common(n_common)]
@@ -21,6 +37,8 @@ def reduce_lines(lines, n_gram, n_common):
 def sample_line(all_words_list, n):
 	"""Return a whole string line from sample_list"""
 	return ' '.join(sample_list(all_words_list, n))
+# usage:
+# sample_line(all_words_list, numpy.random.choice(numpy.arange(8, 21), p=p))
 
 
 def sample_list(all_words_list, n):
@@ -53,3 +71,15 @@ def ordereddict_to_list(od):
 def p_distribution(lines):
 	c = Counter(len(line.split()) for line in lines)
 	return [c[e]/len(lines) for e in sorted(c)]
+
+
+def best_model_path(models_folder='models'):
+	best = '1.0000.h5'
+	best_folder = '()'
+	for folder in os.listdir(models_folder):
+			if '.txt' not in folder:
+				for file in os.listdir('{}/{}'.format(models_folder, folder)):
+					if '.h5' in file and file[-9:] < best[-9:]:
+						best = file
+						best_folder = folder
+	return best_folder + '/' + best 
